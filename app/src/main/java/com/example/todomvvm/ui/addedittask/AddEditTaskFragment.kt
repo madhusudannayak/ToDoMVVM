@@ -1,34 +1,31 @@
 package com.example.todomvvm.ui.addedittask
 
 import android.os.Bundle
-import android.view.View
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.todomvvm.R
 import com.example.todomvvm.databinding.FragmentAddEditTaskBinding
+import com.example.todomvvm.ui.BaseFragment
 import com.example.todomvvm.util.exhaustive
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.item_task.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AddEditTaskFragment : Fragment(R.layout.fragment_add_edit_task) {
+class AddEditTaskFragment : BaseFragment<FragmentAddEditTaskBinding>() {
+    override fun getFragmentView() = R.layout.fragment_add_edit_task
+
 
     private val viewModel: AddEditTaskViewModel by viewModels()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
-        val binding = FragmentAddEditTaskBinding.bind(view)
-
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
         binding.apply {
             editTextTaskName.setText(viewModel.taskName)
             CheckBoxImportant.isChecked = viewModel.taskImportance
@@ -47,8 +44,8 @@ class AddEditTaskFragment : Fragment(R.layout.fragment_add_edit_task) {
             fabSaveTask.setOnClickListener {
                 viewModel.onSaveClick()
             }
-        }
 
+        }
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.addEditTaskEvent.collect { event ->
                 when (event) {
@@ -59,8 +56,8 @@ class AddEditTaskFragment : Fragment(R.layout.fragment_add_edit_task) {
                     is AddEditTaskViewModel.AddEditTaskEvent.NavigateBackWithResult -> {
                         binding.editTextTaskName.clearFocus()
                         setFragmentResult(
-                            "add_edit_request",
-                            bundleOf("add_edit_result" to event.result )
+                                "add_edit_request",
+                                bundleOf("add_edit_result" to event.result )
                         )
                         findNavController().popBackStack()
 
@@ -71,4 +68,6 @@ class AddEditTaskFragment : Fragment(R.layout.fragment_add_edit_task) {
     }
 
 
+
 }
+

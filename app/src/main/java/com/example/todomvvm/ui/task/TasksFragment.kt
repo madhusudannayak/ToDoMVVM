@@ -18,6 +18,7 @@ import com.example.todomvvm.R
 import com.example.todomvvm.data.SortOrder
 import com.example.todomvvm.data.Task
 import com.example.todomvvm.databinding.FragmentTasksBinding
+import com.example.todomvvm.ui.BaseFragment
 import com.example.todomvvm.util.exhaustive
 import com.example.todomvvm.util.onQueryTextChanged
 import com.google.android.material.snackbar.Snackbar
@@ -27,16 +28,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClickListener {
+class TasksFragment : BaseFragment<FragmentTasksBinding>(), TasksAdapter.OnItemClickListener {
+
+    override fun getFragmentView() = R.layout.fragment_tasks
 
     private val viewModel: TasksViewModel by viewModels()
     private lateinit var searchView: SearchView
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val binding = FragmentTasksBinding.bind(view)
-
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
         val taskAdapter = TasksAdapter(this)
 
         binding.apply {
@@ -46,11 +46,11 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
                 setHasFixedSize(true)
             }
             ItemTouchHelper(object :
-                ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+                    ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
                 override fun onMove(
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                    target: RecyclerView.ViewHolder
+                        recyclerView: RecyclerView,
+                        viewHolder: RecyclerView.ViewHolder,
+                        target: RecyclerView.ViewHolder
                 ): Boolean {
                     return false
                 }
@@ -79,24 +79,24 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
                 when (event) {
                     is TasksViewModel.TasksEvent.ShowUndoDeleteTaskMessage -> {
                         Snackbar.make(requireView(), "Task Deleted", Snackbar.LENGTH_LONG)
-                            .setAction("UNDO") {
-                                viewModel.onUndoDeleteClick(event.task)
-                            }.show()
+                                .setAction("UNDO") {
+                                    viewModel.onUndoDeleteClick(event.task)
+                                }.show()
                     }
                     TasksViewModel.TasksEvent.NavigateToAddTaskScreen -> {
                         val action =
-                            TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(
-                                null,
-                                "New Task"
-                            )
+                                TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(
+                                        null,
+                                        "New Task"
+                                )
                         findNavController().navigate(action)
                     }
                     is TasksViewModel.TasksEvent.NavigateToEditTaskScreen -> {
                         val action =
-                            TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(
-                                event.task,
-                                "Edit Task"
-                            )
+                                TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(
+                                        event.task,
+                                        "Edit Task"
+                                )
                         findNavController().navigate(action)
                     }
                     is TasksViewModel.TasksEvent.ShowTaskSavedConfirmationMessage -> {
@@ -106,7 +106,7 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
                     }
                     TasksViewModel.TasksEvent.NavigateToDeleteAllCompletedScreen -> {
                         val action =
-                            TasksFragmentDirections.actionGlobalDeleteAllCompletedDialogFragment()
+                                TasksFragmentDirections.actionGlobalDeleteAllCompletedDialogFragment()
                         findNavController().navigate(action)
                     }
                 }.exhaustive
@@ -114,6 +114,7 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
         }
 
         setHasOptionsMenu(true)
+
     }
 
     override fun onItemClick(task: Task) {
@@ -129,10 +130,10 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
 
         val searchItem = menu.findItem(R.id.action_search)
         searchView = searchItem.actionView as SearchView
-         val pendingQuery = viewModel.searchQuery.value
-        if(pendingQuery != null && pendingQuery.isNotEmpty()){
+        val pendingQuery = viewModel.searchQuery.value
+        if (pendingQuery != null && pendingQuery.isNotEmpty()) {
             searchItem.expandActionView()
-            searchView.setQuery(pendingQuery,false)
+            searchView.setQuery(pendingQuery, false)
         }
 
         searchView.onQueryTextChanged {
@@ -141,7 +142,7 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
 
         viewLifecycleOwner.lifecycleScope.launch {
             menu.findItem(R.id.action_hide_completed_tasks).isChecked =
-                viewModel.preferencesFlow.first().hideCompleted
+                    viewModel.preferencesFlow.first().hideCompleted
         }
     }
 
@@ -172,4 +173,7 @@ class TasksFragment : Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClic
         super.onDestroy()
         searchView.setOnQueryTextListener(null)
     }
+
+
 }
+
